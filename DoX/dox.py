@@ -1,9 +1,12 @@
 # task instance class
 from task import *
+# utility functions
+from util import *
 
 # other useful imports
-import os, re
+import copy, os, re
 
+# dox: API backbone - can be used by other applications
 class dox:
     # task list
     tasks = []
@@ -22,19 +25,10 @@ class dox:
         if id > 0 and id <= len(self.done):
             # return the task object
             return self.done[id - 1]
-    def addTask(self, title="", desc="", pri=0, due=None, tags=[]):
-        # new task
-        taskObj = task()
-        # set values
-        taskObj.id = len(self.tasks) + 1
-        taskObj.title = title
-        taskObj.desc = desc
-        taskObj.pri = pri
-        taskObj.due = due
-        taskObj.tags = tags
-        # store in list (not saved to disk yet)
-        self.tasks.append(taskObj)
-    def editTask(self, id, title="", desc="", pri=0, due=None, tags=[]):
+    def addTask(self, title="", desc="", pri=0, due=None, repeat=None, tags=None):
+        # create new task and store in list
+        self.tasks.append(task(len(self.tasks) + 1, title, desc, pri, due, repeat, tags))
+    def editTask(self, id, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # fetch existing task
         taskObj = self.getTask(id)
         # update values
@@ -42,6 +36,9 @@ class dox:
         taskObj.desc = desc
         taskObj.pri = pri
         taskObj.due = due
+        taskObj.repeat = repeat
+        if not tags:
+            tags = []
         taskObj.tags = tags
     def addTaskFromStr(self, line):
         # use task class parser instead
@@ -56,8 +53,21 @@ class dox:
     def doneTask(self, id):
         # id within range of list
         if id > 0 and id <= len(self.tasks):
+            # fetch task
+            taskObj = self.tasks.pop(id - 1)
+            # schedule a repeat
+            if taskObj.repeat:
+                taskCopy = copy.deepcopy(taskObj)
+                delta = datetime.timedelta(days=taskCopy.repeat[0])
+                # default to repeat from due date
+                due = taskCopy.due[0] + delta
+                if taskCopy.repeat[1]:
+                    # repeat from today instead
+                    due = datetime.datetime.combine(datetime.datetime.today().date() + delta, due.time())
+                taskCopy.due = (due, taskCopy.due[1])
+                self.tasks.append(taskCopy)
             # move task from tasks list to done
-            self.done.append(self.tasks.pop(id - 1))
+            self.done.append(taskObj)
             # fix ids to close gap
             self.renumberTasks()
     def undoTask(self, id):
