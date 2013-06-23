@@ -1,7 +1,7 @@
 # some useful imports
 import datetime, os, re, time
 
-# takes a set of arguments and parses the details out
+# takes a string of arguments and parses the details out (optional default values for updating)
 def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     # hack to stop default tags accumulating on successive calls
     if tags is None:
@@ -10,7 +10,7 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     needTitle = True
     for arg in args:
         # ~ description
-        if arg[0] == "~":
+        if arg[0] == "~" and len(arg) > 1:
             desc = arg[1:].replace("\\", "\n")
         # ! priority (numerical)
         elif re.match("^![0-3]$", arg):
@@ -22,89 +22,21 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         elif arg == "0":
             pri = 0
         # @ due date
-        elif arg[0] == "@":
-            keyword = arg[1:].lower().split("|")
-            # aliases for days
-            days = {
-                "monday": 0,
-                "mon": 0,
-                "tuesday": 1,
-                "tues": 1,
-                "tue": 1,
-                "wednesday": 2,
-                "wed": 2,
-                "thursday": 3,
-                "thurs": 3,
-                "thur": 3,
-                "thu": 3,
-                "friday": 4,
-                "fri": 4,
-                "saturday": 5,
-                "sat": 5,
-                "sunday": 6,
-                "sun": 6
-            }
-            today = datetime.datetime.combine(datetime.datetime.today().date(), datetime.time())
-            thisDate = None
-            # basic string understanding
-            if keyword[0] == "today":
-                thisDate = today
-            elif keyword[0] == "tomorrow":
-                thisDate = today + datetime.timedelta(days=1)
-            elif keyword[0] == "yesterday":
-                thisDate = today + datetime.timedelta(days=-1)
-            elif keyword[0] in ["week", "next week"]:
-                thisDate = today + datetime.timedelta(days=7)
-            elif keyword[0] in days:
-                # compare given day with today
-                day = days[keyword[0]]
-                thisDay = today.weekday()
-                delta = day - thisDay
-                # shift by a week if already passed
-                if delta <= 0:
-                    delta += 7
-                thisDate = today + datetime.timedelta(days=delta)
-            else:
-                # no matches, try standard parse
-                try:
-                    thisDate = datetime.datetime.strptime(keyword[0], "%d/%m/%Y")
-                except ValueError:
-                    try:
-                        thisDate = datetime.datetime.strptime(keyword[0], "%d/%m").replace(year=today.year)
-                    except ValueError:
-                        try:
-                            thisDate = datetime.datetime.strptime(keyword[0], "%d").replace(year=today.year, month=today.month)
-                        except ValueError:
-                            pass
-            # custom match found, now try to find a time
-            if thisDate:
-                due = (thisDate, False)
-                # if a time is specified
-                if len(keyword) > 1:
-                    thisTime = None
-                    if keyword[1] == "now":
-                        thisTime = datetime.datetime.today()
-                    else:
-                        # no matches, try standard parse
-                        try:
-                            thisTime = datetime.datetime.strptime(keyword[1], "%H:%M:%S")
-                        except ValueError:
-                            try:
-                                thisTime = datetime.datetime.strptime(keyword[1], "%H:%M")
-                            except ValueError:
-                                try:
-                                    thisTime = datetime.datetime.strptime(keyword[1], "%H")
-                                except ValueError:
-                                    pass
-                    if thisTime:
-                        due = (datetime.datetime.combine(thisDate.date(), thisTime.time()), True)
+        elif arg[0] == "@" and len(arg) > 1:
+            keywords = arg[1:].split("|")
+            if len(keywords) == 1:
+                keywords.append("")
+            # attempt to parse
+            due = parseDateTime(keywords[0], keywords[1])
         # & repeat
-        elif arg[0] == "&":
+        elif arg[0] == "&" and len(arg) > 1:
             repeat = arg[1:]
             fromToday = False
+            # repeat from today instead of from due date
             if repeat[-1] == "*":
                 repeat = repeat[:-1]
                 fromToday = True
+            # aliases
             if repeat in ["daily", "day", "every day"]:
                 repeat = 1
             elif repeat in ["weekly", "week"]:
@@ -112,6 +44,7 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
             elif repeat in ["fortnightly", "fortnight", "2 weeks"]:
                 repeat = 14
             else:
+                # no matches, treat as integer
                 try:
                     repeat = int(repeat)
                 except ValueError:
@@ -119,7 +52,7 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
             if repeat:
                 repeat = (repeat, fromToday)
         # # tags
-        elif arg[0] == "#":
+        elif arg[0] == "#" and len(arg) > 1:
             tag = arg[1:]
             if tag.lower() in [x.lower() for x in tags]:
                 tags = [x for x in tags if not x.lower() == tag.lower()]
@@ -136,7 +69,120 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     # return parsed values
     return title, desc, pri, due, repeat, tags
 
-# trim and ellipse a string of long strings
+# take a set of values and format them back into a string
+def formatArgs(title="", desc="", pri=0, due=None, repeat=None, tags=None):
+    args = []
+    if title:
+        # just print title
+        args.append(quote(title))
+    if desc:
+        # description with line breaks converted
+        args.append("~{}".format(quote(desc.replace("\n", "\\"))))
+    if pri:
+        # basic priority if not 0
+        args.append("!{}".format(pri))
+    if due:
+        # due date in standard format
+        dueStr = due[0].strftime("@%d/%m/%Y")
+        if due[1]:
+            dueStr = due[0].strftime("@%d/%m/%Y|%H:%M:%S")
+        args.append(dueStr)
+    if repeat:
+        # repeat as a number
+        repeatStr = "&{}".format(repeat[0])
+        if repeat[1]:
+            repeatStr += "*"
+        args.append(repeatStr)
+    if len(tags):
+        # individual tags
+        for tag in tags:
+            args.append("#{}".format(quote(tag)))
+    # return formatted string
+    return " ".join(args)
+
+def parseDateTime(date, time):
+    date = date.lower()
+    time = time.lower()
+    # aliases for days
+    days = {
+        "monday": 0,
+        "mon": 0,
+        "tuesday": 1,
+        "tues": 1,
+        "tue": 1,
+        "wednesday": 2,
+        "wed": 2,
+        "thursday": 3,
+        "thurs": 3,
+        "thur": 3,
+        "thu": 3,
+        "friday": 4,
+        "fri": 4,
+        "saturday": 5,
+        "sat": 5,
+        "sunday": 6,
+        "sun": 6
+    }
+    today = datetime.datetime.combine(datetime.datetime.today().date(), datetime.time())
+    thisDate = None
+    # basic string understanding
+    if date == "today":
+        thisDate = today
+    elif date == "tomorrow":
+        thisDate = today + datetime.timedelta(days=1)
+    elif date == "yesterday":
+        thisDate = today + datetime.timedelta(days=-1)
+    elif date in ["week", "next week"]:
+        thisDate = today + datetime.timedelta(days=7)
+    elif date in days:
+        # compare given day with today
+        day = days[date]
+        thisDay = today.weekday()
+        delta = day - thisDay
+        # shift by a week if already passed
+        if delta <= 0:
+            delta += 7
+        thisDate = today + datetime.timedelta(days=delta)
+    else:
+        # no matches, try standard parse
+        try:
+            thisDate = datetime.datetime.strptime(date, "%d/%m/%Y")
+        except ValueError:
+            try:
+                thisDate = datetime.datetime.strptime(date, "%d/%m").replace(year=today.year)
+            except ValueError:
+                try:
+                    thisDate = datetime.datetime.strptime(date, "%d").replace(year=today.year, month=today.month)
+                except ValueError:
+                    pass
+    # match found, now try to find a time
+    if thisDate:
+        due = (thisDate, False)
+        # if a time is specified
+        if time:
+            thisTime = None
+            if time == "now":
+                thisTime = datetime.datetime.today()
+            else:
+                # no matches, try standard parse
+                try:
+                    thisTime = datetime.datetime.strptime(time, "%H:%M:%S")
+                except ValueError:
+                    try:
+                        thisTime = datetime.datetime.strptime(time, "%H:%M")
+                    except ValueError:
+                        try:
+                            thisTime = datetime.datetime.strptime(time, "%H")
+                        except ValueError:
+                            pass
+            if thisTime:
+                due = (datetime.datetime.combine(thisDate.date(), thisTime.time()), True)
+    # no date specified
+    else:
+        due = None
+    return due
+
+# trim and ellipse a string of long length
 def trunc(string, max):
     if len(string) > max - 3:
         string = string[:max - 3] + "..."

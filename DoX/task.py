@@ -38,39 +38,16 @@ class task:
         return self
     # prints in DoX string format
     def __str__(self):
-        args = []
-        if self.title:
-            # just print title
-            args.append(quote(self.title))
-        if self.desc:
-            # description with line breaks converted
-            args.append("~{}".format(quote(self.desc.replace("\n", "\\"))))
-        if self.pri:
-            # basic priority if not 0
-            args.append("!{}".format(self.pri))
-        if self.due:
-            # due date in standard format
-            due = self.due[0].strftime("@%d/%m/%Y")
-            if self.due[1]:
-                due = self.due[0].strftime("@%d/%m/%Y|%H:%M:%S")
-            args.append(due)
-        if self.repeat:
-            # repeat as a number
-            repeat = "&{}".format(self.repeat[0])
-            if self.repeat[1]:
-                repeat += "*"
-            args.append(repeat)
-        if len(self.tags):
-            # individual tags
-            for tag in self.tags:
-                args.append("#{}".format(quote(tag)))
-        return " ".join(args)
+        return formatArgs(self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # prints developer view of object
     def __repr__(self):
         return "task(id={}, title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={} tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
-    # comparison method for APIs to check IDs
+    # comparison method for APIs to check all fields
     def __eq__(self, other):
-        return self.id == other.id
+        equal = True
+        for field in ["id", "title", "desc", "pri", "due", "repeat", "tags"]:
+            equal &= (getattr(self, field) == getattr(other, field))
+        return equal
 
 if __name__ == "__main__":
     print("You can't run this directly.  See README.md.")
