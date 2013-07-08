@@ -11,7 +11,7 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     for arg in args:
         # ~ description
         if arg[0] == "~" and len(arg) > 1:
-            desc = arg[1:].replace("\\", "\n")
+            desc = arg[1:].replace("|", "\n")
         # ! priority (numerical)
         elif re.match("^![0-3]$", arg):
             pri = int(arg[1])
@@ -77,7 +77,7 @@ def formatArgs(title="", desc="", pri=0, due=None, repeat=None, tags=None):
         args.append(quote(title))
     if desc:
         # description with line breaks converted
-        args.append("~{}".format(quote(desc.replace("\n", "\\"))))
+        args.append("~{}".format(quote(desc.replace("\n", "|"))))
     if pri:
         # basic priority if not 0
         args.append("!{}".format(pri))
@@ -191,7 +191,7 @@ def trunc(string, max):
 # wrap multi-word strings in quotes
 def quote(string):
     if re.search(" ", string):
-        return "\"{}\"".format(string)
+        return "\"{}\"".format(string.replace("\"", "\\\""))
     return string
 
 # print the due date relatively if possible

@@ -150,6 +150,9 @@ class dox:
             # create DoX string format for task and add to file
             tasksFile.write(str(taskObj) + "\r\n")
         tasksFile.close()
+    def tasksFileLastMod(self, path=os.path.join(os.path.expanduser("~"), "DoX")):
+        # return time of either file's last edit
+        return datetime.datetime.fromtimestamp(max(os.path.getmtime(os.path.join(path, "tasks.txt")), os.path.getmtime(os.path.join(path, "done.txt"))))
 
 if __name__ == "__main__":
     print("You can't run this directly.  See README.md.")
