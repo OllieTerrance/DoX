@@ -15,23 +15,19 @@ class dox:
     # load tasks text file
     def __init__(self):
         self.loadTasks()
-    def getTask(self, id):
+    def getTask(self, id, isTasks=True):
+        tasks = self.tasks if isTasks else self.done
         # id within range of list
-        if id > 0 and id <= len(self.tasks):
+        if 0 < id <= len(tasks):
             # return the task object
-            return self.tasks[id - 1]
-    def getDone(self, id):
-        # id within range of list
-        if id > 0 and id <= len(self.done):
-            # return the task object
-            return self.done[id - 1]
+            return tasks[id - 1]
     def addTask(self, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # create new task and store in list
         self.tasks.append(task(len(self.tasks) + 1, title, desc, pri, due, repeat, tags))
         return self
-    def editTask(self, id, title="", desc="", pri=0, due=None, repeat=None, tags=None):
+    def editTask(self, id, title="", desc="", pri=0, due=None, repeat=None, tags=None, isTasks=True):
         # fetch existing task
-        taskObj = self.getTask(id)
+        taskObj = self.getTask(id, isTasks)
         # update values
         taskObj.title = title
         taskObj.desc = desc
@@ -46,17 +42,23 @@ class dox:
         # use task class parser instead
         tasks.append(task().parse(line))
         return self
-    def moveTask(self, id, pos):
+    def moveTask(self, id, pos, isTasks=True):
+        tasks = self.tasks if isTasks else self.done
         # new and old position different, and within range of list
-        if not id == pos and id > 0 and id <= len(self.tasks) and pos > 0 and pos <= len(self.tasks):
+        if not id == pos and 0 < id <= len(tasks) and 0 < pos <= len(tasks):
             # move task from current position (id) to new position
-            self.tasks.insert(pos - 1, self.tasks.pop(id - 1))
+            tasks.insert(pos - 1, tasks.pop(id - 1))
+            # replace original list
+            if isTasks:
+                self.tasks = tasks
+            else:
+                self.done = tasks
             # fix ids to close gap
             self.renumberTasks()
         return self
     def doneTask(self, id):
         # id within range of list
-        if id > 0 and id <= len(self.tasks):
+        if 0 < id <= len(self.tasks):
             # fetch task
             taskObj = self.tasks.pop(id - 1)
             # schedule a repeat
@@ -70,6 +72,8 @@ class dox:
                     due = datetime.datetime.combine(datetime.datetime.today().date() + delta, due.time())
                 taskCopy.due = (due, taskCopy.due[1])
                 self.tasks.append(taskCopy)
+                # cancel repeat on original task (in case of undo)
+                taskObj.repeat = None
             # move task from tasks list to done
             self.done.append(taskObj)
             # fix ids to close gap
@@ -77,17 +81,18 @@ class dox:
         return self
     def undoTask(self, id):
         # id within range of list
-        if id > 0 and id <= len(self.done):
+        if 0 < id <= len(self.done):
             # move task from done list to tasks
             self.tasks.append(self.done.pop(id - 1))
             # fix ids to close gap
             self.renumberTasks()
         return self
-    def deleteTask(self, id):
+    def deleteTask(self, id, isTasks=True):
+        tasks = self.tasks if isTasks else self.done
         # id within range of list
-        if id > 0 and id <= len(self.tasks):
+        if 0 < id <= len(tasks):
             # remove task from list
-            self.tasks.pop(id - 1)
+            tasks.pop(id - 1)
             # fix ids to close gap
             self.renumberTasks()
         return self

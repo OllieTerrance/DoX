@@ -41,7 +41,7 @@ class task:
         return formatArgs(self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # prints developer view of object
     def __repr__(self):
-        return "task(id={}, title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={} tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
+        return "task(id={}, title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={}, tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # comparison method for APIs to check all fields
     def __eq__(self, other):
         equal = True
