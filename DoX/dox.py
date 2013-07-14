@@ -28,6 +28,7 @@ class dox:
     def addTask(self, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # create new task and store in list
         self.tasks.append(task(len(self.tasks) + 1, title, desc, pri, due, repeat, tags))
+        return self
     def editTask(self, id, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # fetch existing task
         taskObj = self.getTask(id)
@@ -40,9 +41,11 @@ class dox:
         if not tags:
             tags = []
         taskObj.tags = tags
+        return self
     def addTaskFromStr(self, line):
         # use task class parser instead
         tasks.append(task().parse(line))
+        return self
     def moveTask(self, id, pos):
         # new and old position different, and within range of list
         if not id == pos and id > 0 and id <= len(self.tasks) and pos > 0 and pos <= len(self.tasks):
@@ -50,6 +53,7 @@ class dox:
             self.tasks.insert(pos - 1, self.tasks.pop(id - 1))
             # fix ids to close gap
             self.renumberTasks()
+        return self
     def doneTask(self, id):
         # id within range of list
         if id > 0 and id <= len(self.tasks):
@@ -70,6 +74,7 @@ class dox:
             self.done.append(taskObj)
             # fix ids to close gap
             self.renumberTasks()
+        return self
     def undoTask(self, id):
         # id within range of list
         if id > 0 and id <= len(self.done):
@@ -77,6 +82,7 @@ class dox:
             self.tasks.append(self.done.pop(id - 1))
             # fix ids to close gap
             self.renumberTasks()
+        return self
     def deleteTask(self, id):
         # id within range of list
         if id > 0 and id <= len(self.tasks):
@@ -84,6 +90,7 @@ class dox:
             self.tasks.pop(id - 1)
             # fix ids to close gap
             self.renumberTasks()
+        return self
     def renumberTasks(self):
         count = 1
         for taskObj in self.tasks:
@@ -95,6 +102,7 @@ class dox:
             # reset the id to the position in the list
             taskObj.id = count
             count += 1
+        return self
     def loadTasks(self, path=os.path.join(os.path.expanduser("~"), "DoX")):
         # empty/reset task lists (if previously loaded)
         self.tasks = []
@@ -135,6 +143,7 @@ class dox:
                 self.done.append(taskObj)
                 count += 1
         doneFile.close()
+        return self
     def saveTasks(self, path=os.path.join(os.path.expanduser("~"), "DoX")):
         # open tasks file for writing
         tasksPath = os.path.join(path, "tasks.txt")
@@ -150,6 +159,7 @@ class dox:
             # create DoX string format for task and add to file
             tasksFile.write(str(taskObj) + "\r\n")
         tasksFile.close()
+        return self
     def tasksFileLastMod(self, path=os.path.join(os.path.expanduser("~"), "DoX")):
         # return time of either file's last edit
         return datetime.datetime.fromtimestamp(max(os.path.getmtime(os.path.join(path, "tasks.txt")), os.path.getmtime(os.path.join(path, "done.txt"))))
