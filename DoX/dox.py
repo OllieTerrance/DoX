@@ -21,6 +21,9 @@ class dox:
         if 0 < id <= len(tasks):
             # return the task object
             return tasks[id - 1]
+    def getCount(self, isTasks=True):
+        # return number of tasks in list
+        return len(self.tasks) if isTasks else len(self.done)
     def addTask(self, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # create new task and store in list
         self.tasks.append(task(len(self.tasks) + 1, title, desc, pri, due, repeat, tags))
