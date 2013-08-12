@@ -43,9 +43,12 @@ class task:
     def __repr__(self):
         return "task(id={}, title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={}, tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # comparison method for APIs to check all fields
-    def __eq__(self, other):
+    def __eq__(self, other, checkId=True):
         equal = True
-        for field in ["id", "title", "desc", "pri", "due", "repeat", "tags"]:
+        fields = ["title", "desc", "pri", "due", "repeat", "tags"]
+        if checkId:
+            fields.append("id")
+        for field in fields:
             equal &= (getattr(self, field) == getattr(other, field))
         return equal
 
