@@ -21,6 +21,9 @@ class dox:
         if 0 < id <= len(tasks):
             # return the task object
             return tasks[id - 1]
+    def getAllTasks(self, isTasks=True):
+        # return all tasks in the list
+        return self.tasks if isTasks else self.done
     def getCount(self, isTasks=True):
         # return number of tasks in list
         return len(self.tasks) if isTasks else len(self.done)
