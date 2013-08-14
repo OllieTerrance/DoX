@@ -25,23 +25,22 @@ class task:
             tags = []
         self.tags = tags
         pass
-    def parse(self, id, line):
+    def parse(self, line):
         # split by space, keep quoted params intact
         args = shlex.split(line)
         # empty line, return null
         if not len(args):
             return None
-        # set new id
-        self.id = id
-        self.title, self.desc, self.pri, self.due, self.repeat, self.tags = parseArgs(args)
+        # set fields
+        self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags = parseArgs(args)
         # return new task
         return self
     # prints in DoX string format
     def __str__(self):
-        return formatArgs(self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
+        return formatArgs(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # prints developer view of object
     def __repr__(self):
-        return "task(id={}, title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={}, tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
+        return "task(id=\"{}\", title=\"{}\", desc=\"{}\", pri={}, due={}, repeat={}, tags={})".format(self.id, self.title, self.desc, self.pri, self.due, self.repeat, self.tags)
     # comparison method for APIs to check all fields
     def __eq__(self, other, checkId=True):
         equal = True

@@ -2,15 +2,18 @@
 import datetime, os, re, time
 
 # takes a string of arguments and parses the details out (optional default values for updating)
-def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
+def parseArgs(args, id=None, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     # hack to stop default tags accumulating on successive calls
     if tags is None:
         tags = []
     # first generic parameter regarded as task title
     needTitle = True
     for arg in args:
+        # $ identifer (hex)
+        if re.match("^\$[0-9a-f]{5}$", arg) and not id == False:
+            id = arg[1:]
         # ~ description
-        if arg[0] == "~" and len(arg) > 1:
+        elif arg[0] == "~" and len(arg) > 1:
             desc = arg[1:].replace("|", "\n")
         # ! priority (numerical)
         elif re.match("^![0-3]$", arg):
@@ -67,10 +70,10 @@ def parseArgs(args, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # make it due today
         due = (datetime.datetime.combine(datetime.datetime.today().date(), datetime.time()), False)
     # return parsed values
-    return title, desc, pri, due, repeat, tags
+    return id, title, desc, pri, due, repeat, tags
 
 # take a set of values and format them back into a string
-def formatArgs(title="", desc="", pri=0, due=None, repeat=None, tags=None):
+def formatArgs(id=None, title="", desc="", pri=0, due=None, repeat=None, tags=None):
     args = []
     if title:
         # just print title
@@ -97,6 +100,8 @@ def formatArgs(title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # individual tags
         for tag in tags:
             args.append("#{}".format(quote(tag)))
+    if id:
+        args.append("${}".format(id))
     # return formatted string
     return " ".join(args)
 
