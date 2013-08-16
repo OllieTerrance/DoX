@@ -191,7 +191,7 @@ class dox:
         # list of task objects to generate IDs for
         toGen = []
         for taskObj in self.tasks + self.done:
-            if taskObj.id not in used:
+            if taskObj.id and taskObj.id not in used:
                 used.append(taskObj.id)
             else:
                 toGen.append(taskObj)
