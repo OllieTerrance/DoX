@@ -9,7 +9,7 @@ def parseArgs(args, id=None, title="", desc="", pri=0, due=None, repeat=None, ta
     # first generic parameter regarded as task title
     needTitle = True
     for arg in args:
-        # $ identifer (hex)
+        # $ identifier (hex)
         if re.match("^\$[0-9a-f]{5}$", arg) and not id == False:
             id = arg[1:]
         # ~ description
