@@ -41,7 +41,7 @@ class dox:
         return tasks[pos - 1].id if 0 < pos <= len(tasks) else None
     def addTask(self, title="", desc="", pri=0, due=None, repeat=None, tags=None):
         # create new task and store in list
-        self.tasks.append(task(len(self.tasks) + 1, title, desc, pri, due, repeat, tags))
+        self.tasks.append(task(None, title, desc, pri, due, repeat, tags))
         # set IDs
         self.fixIDs()
         return self
