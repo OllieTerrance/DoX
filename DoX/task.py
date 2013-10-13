@@ -1,5 +1,5 @@
 # utility functions
-from util import *
+from DoX.util import *
 
 # some more useful imports
 import datetime, re, shlex

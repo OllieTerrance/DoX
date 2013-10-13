@@ -1,7 +1,5 @@
 # task instance class
-from task import *
-# utility functions
-from util import *
+from DoX.task import *
 
 # other useful imports
 import copy, os, random, re
