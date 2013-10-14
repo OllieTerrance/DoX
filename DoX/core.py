@@ -138,24 +138,24 @@ class dox:
             open(donePath, "w").close()
         configPath = os.path.join(path, "config.txt")
         # open tasks file
-        tasksFile = open(tasksPath, "r")
+        tasksFile = open(tasksPath, "rb")
         count = 1
         # loop through file
         for line in tasksFile:
             # parse line into task object
-            taskObj = task().parse(line)
+            taskObj = task().parse(line.decode("utf-8"))
             # add to list
             if taskObj:
                 self.tasks.append(taskObj)
                 count += 1
         tasksFile.close()
         # open completed tasks file
-        doneFile = open(donePath, "r")
+        doneFile = open(donePath, "rb")
         count = 1
         # loop through file
         for line in doneFile:
             # parse line into task object
-            taskObj = task().parse(line)
+            taskObj = task().parse(line.decode("utf-8"))
             # add to list
             if taskObj:
                 self.done.append(taskObj)
@@ -167,18 +167,18 @@ class dox:
     def saveTasks(self, path=os.path.join(os.path.expanduser("~"), "DoX")):
         # open tasks file for writing
         tasksPath = os.path.join(path, "tasks.txt")
-        tasksFile = open(tasksPath, "w")
+        tasksFile = open(tasksPath, "wb")
         for taskObj in self.tasks:
             # create DoX string format for task and add to file
-            tasksFile.write(str(taskObj) + "\r\n")
+            tasksFile.write((str(taskObj) + "\r\n").encode("utf-8"))
         tasksFile.close()
         # open done file for writing
-        tasksPath = os.path.join(path, "done.txt")
-        tasksFile = open(tasksPath, "w")
+        donePath = os.path.join(path, "done.txt")
+        doneFile = open(donePath, "wb")
         for taskObj in self.done:
             # create DoX string format for task and add to file
-            tasksFile.write(str(taskObj) + "\r\n")
-        tasksFile.close()
+            doneFile.write((str(taskObj) + "\r\n").encode("utf-8"))
+        doneFile.close()
         return self
     def newID(self):
         # generate a random ID

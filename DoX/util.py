@@ -1,5 +1,14 @@
 # some useful imports
-import datetime, os, re, time
+import datetime, os, re, shlex, sys, time
+
+# wrapper for shlex.split to support Unicode strings in Python 2.x
+def shlexSplit(string):
+    if sys.version_info >= (3,):
+        # Python 3.x natively support Unicode, just use that
+        return shlex.split(string)
+    else:
+        # encode string, split, then decode parts
+        return map(lambda s: s.decode("UTF8"), shlex.split(string.encode("utf-8")))
 
 # takes a string of arguments and parses the details out (optional default values for updating)
 def parseArgs(args, id=None, title="", desc="", pri=0, due=None, repeat=None, tags=None):

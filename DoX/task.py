@@ -2,7 +2,7 @@
 from DoX.util import *
 
 # some more useful imports
-import datetime, re, shlex
+import datetime, re
 
 # task: a thing to do on the to-do list
 #     id: assigned dynamically based on list position
@@ -27,7 +27,7 @@ class task:
         pass
     def parse(self, line):
         # split by space, keep quoted params intact
-        args = shlex.split(line)
+        args = shlexSplit(line)
         # empty line, return null
         if not len(args):
             return None
